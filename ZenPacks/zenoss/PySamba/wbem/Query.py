@@ -241,7 +241,13 @@ class Query(object):
                     yield deferred(c); driver.next()
                     result = library.IUnknown_Release_recv(self.ctx)
                     WERR_CHECK(result, self._deviceId, "Release")
-                log.exception(ex)
+                    
+                # handle expected error types by just logging at error level
+                if isinstance(ex, (WError,)):
+                    log.error(ex)
+                else:
+                    # exceptions of unexpected type get logged as exceptions, which includes traceback
+                    log.exception(ex)
                 raise
         return drive(inner)
 
