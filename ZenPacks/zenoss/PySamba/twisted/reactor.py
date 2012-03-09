@@ -88,7 +88,6 @@ class WmiReactorMixin:
         self.watchFileDescriptor(fd, 0)
 
     def watchFileDescriptor(self, fd, flags):
-        log.debug("Callback from c: watchFileDescriptor: fd: %s flags: %s" % (fd, flags))
         if (flags & EVENT_FD_READ) != 0:
             if fd not in self.readFdMap:
                 reader = ActivityHook('Reader', fd)
