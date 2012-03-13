@@ -26,11 +26,8 @@ build:
 	make build DESTDIR=$(ZENPACK_DIR); \
 	make install DESTDIR=$(ZENPACK_DIR); \
 
-# The clean target won't be used by any automated process.
 clean:
-	rm -rf build dist *.egg-info
-	find . -name '*.pyc' | xargs rm
-
+	-rm -rf build dist *.egg-info 2>/dev/null
+	find . -name '*.pyc' -delete
 	cd $(WMI_DIR) ; \
 	make clean DESTDIR=$(ZENPACK_DIR)
-
