@@ -20,19 +20,17 @@ SAMBA_SRCDIR      = Samba/source
 ZENOSS_BINDIR     = $(ZENHOME)/bin
 ZENPYTHON         = $(ZENOSS_BINDIR)/python
 PYTHON           ?= $(ZENPYTHON)
-PYTHON_EXISTS    := $(wildcard $(PYTHON))
 DEST_BINDIR       = /bin
 DEST_LIBDIR       = /lib
+
 # Assuming python was found, tease out path to headers we should 
 # compile against:  e.g., $ZENHOME/include/python#.#
 # Extract WMI version for subversion tagging as desired.
 #
-ifeq ($(PYTHON_EXISTS),$(PYTHON))
 PY_INCDIR     = $(ZENHOME)/include/$(shell $(PYTHON) --version 2>&1 | sed -e 's/[Pp]ython[ \t]*/python/' -e 's/\([0-9]\.[0-9]\)\(\.[0-9]\)*/\1/')
 GET_VERSION   = "import version as v; print v.VERSION"
 WMI_VERSION  := $(shell cd $(DESTDIR) ; $(PYTHON) -c $(GET_VERSION))
 WMI_CPPFLAGS := -I$(PY_INCDIR)
-endif
 
 #-------------------------------------------------------------------------#
 # A key deliverable of this build process is the libasync_wmi shared      #
@@ -88,15 +86,20 @@ define check
 			echo $3 | awk '{printf("Missing: %-20s\n",$$1)}';\
 			exit 1 ;\
 		else \
-			echo "$3 $2" | awk '{printf("Found:   %-20s %20s\n",$$1,$$2)}' 1>/dev/null;\
+			echo "$3 $2" | awk '{printf("Found:   %-20s %-20s\n",$$1,$$2)}';\
 		fi ;\
 	fi
 	@if [ "$1" = "file" ]; then \
 		if [ ! -f "$2" ];then \
-			echo "$3 $2" | awk '{printf("Missing: %-20s %s\n",$$1,$$2)}';\
-			exit 1 ;\
+			spFile=`which $2 2>/dev/null` ;\
+			if [ ! -f "$${spFile}" ]; then \
+				echo "$3 $2" | awk '{printf("Missing: %-20s %s\n",$$1,$$2)}';\
+				exit 1 ;\
+			else \
+				echo "$3 $2 $${spFile}" | awk '{printf("Found:   %-20s %-20s %-20s [in search path]\n",$$1,$$2,$$3)}';\
+			fi ;\
 		else \
-			echo "$3 $2" | awk '{printf("Found:   %-20s %20s\n",$$1,$$2)}' 1>/dev/null;\
+			echo "$3 $2" | awk '{printf("Found:   %-20s %-20s\n",$$1,$$2)}';\
 		fi ;\
 	fi
 endef
@@ -206,7 +209,8 @@ debug:
 	@echo "DEST_LIBDIR       = $(DEST_LIBDIR)"
 	@echo "DEST_BINDIR       = $(DEST_BINDIR)"
 	@echo "ZENOSS_BINDIR     = $(ZENOSS_BINDIR)"
-	@echo "PYTHON            = $(PYTHON_EXISTS)"
+	@echo "ZENPYTHON         = $(ZENPYTHON)"
+	@echo "PYTHON            = $(PYTHON)"
 	@echo "WMI_CONFIGURE       CPPFLAGS="$(WMI_CPPFLAGS)" ./configure --without-readline --enable-debug"
 	@echo "WMI_MAKE            $(MAKE) $(WMI_BUILD_TARGETS)"
 ifeq ($(USE_BREAKPAD),)
@@ -219,3 +223,11 @@ else
 	@echo "breakpad_LIBDIR   = $(breakpad_LIBDIR)"
 	@echo "fqp_breakpad_LIB  = $(fqp_breakpad_LIB)"
 endif
+	@echo "ZENHOME           = $(ZENHOME)"
+	@if [ -z "$(ZENHOME)" ] ;then \
+		echo ;\
+		echo "Error: ZENHOME is not set." ;\
+		echo "       This can cause problems locating a good version of python for this build." ;\
+		echo ;\
+		exit 1 ;\
+	fi

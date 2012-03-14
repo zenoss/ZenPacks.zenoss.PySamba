@@ -21,10 +21,15 @@ build:
 	# is provided in core.
 	echo "Building WMI libraries..."; \
 	cd $(WMI_DIR) ; \
-	configure; \
-	make debug DESTDIR=$(ZENPACK_DIR); \
-	make build DESTDIR=$(ZENPACK_DIR); \
-	make install DESTDIR=$(ZENPACK_DIR); \
+	if ! make debug DESTDIR=$(ZENPACK_DIR); then \
+		exit 1 ;\
+	fi ;\
+	if ! make build DESTDIR=$(ZENPACK_DIR); then \
+		exit 1 ;\
+	fi ;\
+	if ! make install DESTDIR=$(ZENPACK_DIR); then \
+		exit 1 ;\
+	fi
 
 clean:
 	-rm -rf build dist *.egg-info 2>/dev/null
