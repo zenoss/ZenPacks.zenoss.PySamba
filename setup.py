@@ -9,7 +9,7 @@ LICENSE = ''
 NAMESPACE_PACKAGES = ['ZenPacks', 'ZenPacks.zenoss']
 PACKAGES = ['ZenPacks', 'ZenPacks.zenoss', 'ZenPacks.zenoss.PySamba']
 INSTALL_REQUIRES = []
-COMPAT_ZENOSS_VERS = '>= 4.2'
+COMPAT_ZENOSS_VERS = '>=4.1.70'
 PREV_ZENPACK_NAME = 'PySamba'
 # STOP_REPLACEMENTS
 ################################
