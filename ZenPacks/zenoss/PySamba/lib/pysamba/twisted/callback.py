@@ -22,7 +22,10 @@ COUNTER = 0L
 class WMIFailure(Exception):
     "Exception that represents a composite_context failure"
     def __str__(self):
-        return library.nt_errstr(self.args[1])
+        ex = self
+        while isinstance(ex.args[0], WMIFailure):
+            ex = ex.args[0]
+        return library.nt_errstr(ex.args[1])
 
 class Callback(object):
     "Turn a composite_context callback into a deferred callback"
