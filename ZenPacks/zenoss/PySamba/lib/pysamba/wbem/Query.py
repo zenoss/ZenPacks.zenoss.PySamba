@@ -43,6 +43,16 @@ class _WbemObject:
             return self.__dict__[name.lower()]
         except Exception, ex:
             raise AttributeError(name)
+    def __repr__(self):
+        klass = getattr(self, '_class_name', 'UNKNOWN')
+        name = ''
+        for attr in ('name', 'caption', 'id'):
+            name = getattr(self, attr, '')
+            if name: 
+                break
+        else:
+            name = hex(id(self))
+        return "(%s:%s)" % (klass, name)
 
 def convertArray(arr):
     if not arr:

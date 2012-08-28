@@ -240,14 +240,14 @@ static void smb_trans_callback(struct smbcli_request *req)
 		talloc_steal(c, data.data);
 		talloc_free(state);
 		c->transport.recv_data(c, &data, NT_STATUS_OK);
-		DEBUG_FN_EXIT_MSG("BUFFER_OVERFLOW");
+		DEBUG_FN_EXIT;
 		return;
 	}
 
 	/* there is more to receive - setup a readx */
 	send_read_request_continue(c, &state->trans->out.data);
 	talloc_free(state);
-        DEBUG_FN_EXIT;
+	DEBUG_FN_EXIT_MSG("INSUFFICIENT_BUFFER, re-reading...");
 
 }
 

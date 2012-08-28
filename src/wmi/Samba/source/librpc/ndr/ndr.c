@@ -193,11 +193,7 @@ _PUBLIC_ void ndr_print_debug_helper(struct ndr_print *ndr, const char *format, 
 	vasprintf(&s, format, ap);
 	va_end(ap);
 
-	for (i=0;i<ndr->depth;i++) {
-		DEBUG(0,("    "));
-	}
-
-	DEBUG(0,("%s\n", s));
+	DEBUG(0,("%*s%s\n", 2*ndr->depth, "", s));
 	free(s);
 }
 
