@@ -15,6 +15,8 @@ from Products.ZenUtils.Utils import atomicWrite
 
 class ZenPack(ZenPackBase):
 
+    binUtilities = ['wmic', 'winexe']
+
     def __init__(self, *args):
         super(ZenPack,self).__init__(*args)
         self.thisZenPackLibDir = os.path.join(os.path.dirname(__file__), 'lib')
@@ -38,6 +40,10 @@ class ZenPack(ZenPackBase):
 
         self._rewriteEasyInstallPthFile(easyInstallPthLines)
 
+        # add symlinks for command line utilities
+        for utilname in self.binUtilities:
+            self.installBinFile(utilname)
+
     def remove(self, *args):
         super(ZenPack,self).remove(*args)
 
@@ -46,3 +52,8 @@ class ZenPack(ZenPackBase):
                                if line != self.thisZenPackLibDir]
 
         self._rewriteEasyInstallPthFile(easyInstallPthLines)
+
+        # remove symlinks for command line utilities
+        for utilname in self.binUtilities:
+            self.removeFile(utilname)
+
