@@ -12,6 +12,10 @@ install: pywmi-installed
 all:     build install
 .PHONY:  clean debug 
 
+ifeq ($(USE_DESTDIR),0)
+export DESTDIR=
+endif
+
 WMI_BUILD_TARGETS  = proto bin/wmic bin/winexe libraries
 SAMBA_SRCDIR       = Samba/source
 ZENPYTHON_SODIR   := $(DESTDIR)$(ZENHOME)/lib
@@ -193,7 +197,7 @@ clean: $(LIBRPC_CONFIG_MK)
 	rm -f $(DESTDIR)$(ZENHOME_LIB)/$(LIBASYNC_WMI_LIB_BASENAME)*
 	@-[ -L $(breakpad_LIB_SYMLINK) ] && rm -f $(breakpad_LIB_SYMLINK)
 
-debug: 
+debug:	
 	@echo "WMI_VERSION       = $(WMI_VERSION)"
 	@echo "SAMBA_SRCDIR      = $(SAMBA_SRCDIR)"
 	@echo "PYSAMBA_SRCDIR    = $(PYSAMBA_SRCDIR)"
@@ -202,6 +206,7 @@ debug:
 	@echo "ZENHOME_LIB       = $(ZENHOME_LIB)"
 	@echo "ZENHOME_INC       = $(ZENHOME_INC)"
 	@echo "ZENPYTHON         = $(ZENPYTHON)"
+	@echo "ZENPYTHON_VERSION = $(ZENPYTHON_VERSION)"
 	@echo "WMI_CONFIGURE       CPPFLAGS="$(WMI_CPPFLAGS)" ./configure --without-readline --enable-debug"
 	@echo "WMI_MAKE            $(MAKE) $(WMI_BUILD_TARGETS)"
 ifeq ($(USE_BREAKPAD),)
@@ -219,6 +224,20 @@ endif
 		echo ;\
 		echo "Error: ZENHOME is not set." ;\
 		echo "       This can cause problems locating a good version of python for this build." ;\
+		echo ;\
+		exit 1 ;\
+	fi
+	@if [ -z "$(ZENPYTHON_VERSION)" ] ;then \
+		echo ;\
+		echo "Error: ZENPYTHON_VERSION is not set." ;\
+		echo "       Please investigate." ;\
+		echo ;\
+		exit 1 ;\
+	fi
+	@if [ -z "$(WMI_VERSION)" ] ;then \
+		echo ;\
+		echo "Error: WMI_VERSION is not set." ;\
+		echo "       Please investigate." ;\
 		echo ;\
 		exit 1 ;\
 	fi

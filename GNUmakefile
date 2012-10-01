@@ -21,20 +21,37 @@ default: build
 # The build target is specifically executed each time setup.py executes.
 # Typically this is when the ZenPack is being built into an egg, or when it is
 # installed using the zenpack --link option to install in development mode.
-build:
-	# Build WMI - 
-	# Note that by default, we require the google breakpad client 
-	# library be available on this machine in $ZENHOME/lib/. This
-	# is provided in core.
-	echo "Building WMI libraries..."; \
+
+check_prereqs:
 	cd $(WMI_SRCDIR) ; \
 	if ! make debug PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR); then \
+		echo "Error: Failed during $@" ;\
+		echo "   cd $(WMI_SRCDIR)" ;\
+		echo "   make debug PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR)" ;\
 		exit 1 ;\
-	fi ;\
+	fi
+
+# Build WMI
+#
+# Note that by default, we require the google breakpad client 
+# library be available on this machine in $ZENHOME/lib/. This
+# is provided in core.
+#
+build: check_prereqs
+	echo "Building WMI libraries..."
+	@cd $(WMI_SRCDIR) ; \
 	if ! make build PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR); then \
+		echo "Error: Failed during $@" ;\
+		echo "   cd $(WMI_SRCDIR)" ;\
+		echo "   make build PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR)" ;\
+		echo "   Unable to build WMI." ;\
 		exit 1 ;\
 	fi ;\
 	if ! make install PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR); then \
+		echo "Error: Failed during $@" ;\
+		echo "   cd $(WMI_SRCDIR)" ;\
+		echo "   make install PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR)" ;\
+		echo "   Unable to install WMI." ;\
 		exit 1 ;\
 	fi
 

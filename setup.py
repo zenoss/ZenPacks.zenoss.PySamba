@@ -45,7 +45,9 @@ class MyDist(Distribution):
 if os.path.isfile('GNUmakefile'):
     print 'GNUmakefile found. Running "make build" ..'
     p = Popen('make build', stdout=PIPE, stderr=PIPE, shell=True)
-    print p.communicate()[0]
+    stdout,stderr=p.communicate()
+    print stdout
+    print stderr
     if p.returncode != 0:
         raise Exception('"make build" exited with an error: %s' % p.returncode)
 
