@@ -7,28 +7,22 @@
 # 
 ##############################################################################
 
-
 build:   pywmi-build 
 install: pywmi-installed 
 all:     build install
-.PHONY:  clean debug tarball
+.PHONY:  clean debug 
 
-WMI_BUILD_TARGETS = proto bin/wmic bin/winexe libraries
-SAMBA_SRCDIR      = Samba/source
-ZENOSS_BINDIR     = $(ZENHOME)/bin
-ZENPYTHON         = $(ZENOSS_BINDIR)/python
-PYTHON           ?= $(ZENPYTHON)
-DEST_BINDIR       = /bin
-DEST_LIBDIR       = /lib
-
-# Assuming python was found, tease out path to headers we should 
-# compile against:  e.g., $ZENHOME/include/python#.#
-# Extract WMI version for subversion tagging as desired.
-#
-PY_INCDIR     = $(ZENHOME)/include/$(shell $(PYTHON) --version 2>&1 | sed -e 's/[Pp]ython[ \t]*/python/' -e 's/\([0-9]\.[0-9]\)\(\.[0-9]\)*/\1/')
-GET_VERSION   = "import version as v; print v.VERSION"
-WMI_VERSION  := $(shell cd $(DESTDIR) ; $(PYTHON) -c $(GET_VERSION))
-WMI_CPPFLAGS := -I$(PY_INCDIR)
+WMI_BUILD_TARGETS  = proto bin/wmic bin/winexe libraries
+SAMBA_SRCDIR       = Samba/source
+ZENPYTHON_SODIR   := $(DESTDIR)$(ZENHOME)/lib
+ZENPYTHON          = LD_LIBRARY_PATH=$(ZENPYTHON_SODIR) $(DESTDIR)$(ZENHOME)/bin/python
+ZENPYTHON_VERSION := $(shell $(ZENPYTHON) --version 2>&1 | sed -e 's/[Pp]ython[ \t]*/python/' -e 's/\([0-9]\.[0-9]\)\(\.[0-9]\)*/\1/')
+ZENHOME_INC        = $(ZENHOME)/include/$(ZENPYTHON_VERSION)
+ZENHOME_LIB        = $(ZENHOME)/lib
+ZENHOME_BIN        = $(ZENHOME)/bin
+GET_VERSION        = "import version as v; print v.VERSION"
+WMI_VERSION       := $(shell cd $(PYSAMBA_SRCDIR)/lib/pysamba ; $(ZENPYTHON) -c $(GET_VERSION))
+WMI_CPPFLAGS      := -I$(DESTDIR)$(ZENHOME_INC)
 
 #-------------------------------------------------------------------------#
 # A key deliverable of this build process is the libasync_wmi shared      #
@@ -69,7 +63,7 @@ ifneq ($(USE_BREAKPAD),)
 breakpad_CPPFLAGS    = -DBREAKPAD
 WMI_CPPFLAGS        += $(breakpad_CPPFLAGS)
 breakpad_LIB         = libbreakpad_client.a
-breakpad_LIBDIR     ?= $(ZENHOME)/lib
+breakpad_LIBDIR     ?= $(DESTDIR)$(ZENHOME)/lib
 _fqp_breakpad_LIB   := $(breakpad_LIBDIR)/$(breakpad_LIB)
 fqp_breakpad_LIB     = $(patsubst //%,/%,$(_fqp_breakpad_LIB))
 breakpad_LIB_SYMLINK = $(SAMBA_SRCDIR)/bin/static/$(breakpad_LIB)
@@ -105,9 +99,9 @@ endef
 build-prereqs:
 	@echo
 	@echo "Checking prequisites for building WMI"
-	$(call check,directory,$(ZENHOME),"ZENHOME")
-	$(call check,file,$(PYTHON),"PYTHON")
-	$(call check,directory,$(PY_INCDIR),"PY_INCDIR")
+	$(call check,directory,$(DESTDIR)$(ZENHOME),"ZENHOME")
+	$(call check,file,$(ZENPYTHON),"ZENPYTHON")
+	$(call check,directory,$(DESTDIR)$(ZENHOME_INC),"ZENHOME_INC")
 ifneq ($(USE_BREAKPAD),)
 	@if [ ! -f "$(fqp_breakpad_LIB)" ];then \
 		echo "Unable to find the google breakpad client library we require at:" ;\
@@ -124,9 +118,9 @@ endif
 install-prereqs:
 	@echo
 	@echo "Checking prequisites for installing WMI"
-	$(call check,directory,$(ZENHOME),"ZENHOME")
-	$(call check,directory,$(DESTDIR)$(DEST_BINDIR),"DEST_BINDIR")
-	$(call check,directory,$(DESTDIR)$(DEST_LIBDIR),"DEST_LIBDIR")
+	$(call check,directory,$(DESTDIR)$(ZENHOME),"ZENHOME")
+	$(call check,directory,$(DESTDIR)$(ZENHOME_BIN),"ZENHOME_BIN")
+	$(call check,directory,$(DESTDIR)$(ZENHOME_LIB),"ZENHOME_LIB")
 	@touch $@
 
 LIBRPC_CONFIG_MK = $(SAMBA_SRCDIR)/librpc/config.mk
@@ -166,19 +160,19 @@ endif
 	$(MAKE) $(WMI_BUILD_TARGETS) ;\
 	touch $@
 
-pywmi-installed: install-prereqs $(DESTDIR)$(DEST_LIBDIR) $(DESTDIR)$(DEST_BINDIR) $(SAMBA_SRCDIR)/bin/wmic $(SAMBA_SRCDIR)/bin/winexe $(PATHED_LIBASYNC_WMI_LIB)
-	cp $(SAMBA_SRCDIR)/bin/wmic   $(DESTDIR)$(DEST_BINDIR)
-	cp $(SAMBA_SRCDIR)/bin/winexe $(DESTDIR)$(DEST_BINDIR)
+pywmi-installed: install-prereqs $(DESTDIR)$(ZENHOME_LIB) $(DESTDIR)$(ZENHOME_BIN) $(SAMBA_SRCDIR)/bin/wmic $(SAMBA_SRCDIR)/bin/winexe $(PATHED_LIBASYNC_WMI_LIB)
+	cp $(SAMBA_SRCDIR)/bin/wmic   $(DESTDIR)$(ZENHOME_BIN)
+	cp $(SAMBA_SRCDIR)/bin/winexe $(DESTDIR)$(ZENHOME_BIN)
 ifeq ($(shell uname), Darwin)
-	cp $(PATHED_LIBASYNC_WMI_LIB) $(DESTDIR)$(DEST_LIBDIR)/$(LIBASYNC_WMI_LIB_BASENAME).$(LIBASYNC_WMI_LIB_VERSION_nnn).dylib
-	(cd $(DESTDIR)$(DEST_LIBDIR) && ln -sf $(LIBASYNC_WMI_LIB_BASENAME).$(LIBASYNC_WMI_LIB_VERSION_nnn).dylib $(LIBASYNC_WMI_LIB_BASENAME).dylib)
+	cp $(PATHED_LIBASYNC_WMI_LIB) $(DESTDIR)$(ZENHOME_LIB)/$(LIBASYNC_WMI_LIB_BASENAME).$(LIBASYNC_WMI_LIB_VERSION_nnn).dylib
+	(cd $(DESTDIR)$(ZENHOME_LIB) && ln -sf $(LIBASYNC_WMI_LIB_BASENAME).$(LIBASYNC_WMI_LIB_VERSION_nnn).dylib $(LIBASYNC_WMI_LIB_BASENAME).dylib)
 else
-	-(cd $(DESTDIR)$(DEST_LIBDIR) && rm -f $(LIBASYNC_WMI_LIB_BASENAME)*)
-	cp $(PATHED_LIBASYNC_WMI_LIB) $(DESTDIR)$(DEST_LIBDIR)
-	(cd $(DESTDIR)$(DEST_LIBDIR) && ln -sf $(LIBASYNC_WMI_LIB) $(LIBASYNC_WMI_LIB_SO_N))
+	-(cd $(DESTDIR)$(ZENHOME_LIB) && rm -f $(LIBASYNC_WMI_LIB_BASENAME)*)
+	cp $(PATHED_LIBASYNC_WMI_LIB) $(DESTDIR)$(ZENHOME_LIB)
+	(cd $(DESTDIR)$(ZENHOME_LIB) && ln -sf $(LIBASYNC_WMI_LIB) $(LIBASYNC_WMI_LIB_SO_N))
 endif
 
-$(DESTDIR)$(DEST_BINDIR) $(DESTDIR)$(DEST_LIBDIR):
+$(DESTDIR)$(ZENHOME_BIN) $(DESTDIR)$(ZENHOME_LIB):
 	mkdir -p $@
 
 clean: $(LIBRPC_CONFIG_MK)
@@ -191,24 +185,23 @@ clean: $(LIBRPC_CONFIG_MK)
 	rm -f $(SAMBA_SRCDIR)/bin/wmic
 	rm -f $(SAMBA_SRCDIR)/bin/winexe 
 	rm -f $(SAMBA_SRCDIR)/heimdal/lib/des/hcrypto
-	rm -f $(DESTDIR)$(DEST_BINDIR)/wmic
-	rm -f $(DESTDIR)$(DEST_BINDIR)/winexe
+	rm -f $(DESTDIR)$(ZENHOME_BIN)/wmic
+	rm -f $(DESTDIR)$(ZENHOME_BIN)/winexe
 	rm -f build-prereqs
 	rm -f install-prereqs
 	rm -f $(LIBRPC_CONFIG_MK)
-	rm -f $(DESTDIR)$(DEST_LIBDIR)/$(LIBASYNC_WMI_LIB_BASENAME)*
+	rm -f $(DESTDIR)$(ZENHOME_LIB)/$(LIBASYNC_WMI_LIB_BASENAME)*
 	@-[ -L $(breakpad_LIB_SYMLINK) ] && rm -f $(breakpad_LIB_SYMLINK)
 
 debug: 
 	@echo "WMI_VERSION       = $(WMI_VERSION)"
 	@echo "SAMBA_SRCDIR      = $(SAMBA_SRCDIR)"
-	@echo "PY_INCDIR         = $(PY_INCDIR)"
+	@echo "PYSAMBA_SRCDIR    = $(PYSAMBA_SRCDIR)"
 	@echo "DESTDIR           = $(DESTDIR)"
-	@echo "DEST_LIBDIR       = $(DEST_LIBDIR)"
-	@echo "DEST_BINDIR       = $(DEST_BINDIR)"
-	@echo "ZENOSS_BINDIR     = $(ZENOSS_BINDIR)"
+	@echo "ZENHOME_BIN       = $(ZENHOME_BIN)"
+	@echo "ZENHOME_LIB       = $(ZENHOME_LIB)"
+	@echo "ZENHOME_INC       = $(ZENHOME_INC)"
 	@echo "ZENPYTHON         = $(ZENPYTHON)"
-	@echo "PYTHON            = $(PYTHON)"
 	@echo "WMI_CONFIGURE       CPPFLAGS="$(WMI_CPPFLAGS)" ./configure --without-readline --enable-debug"
 	@echo "WMI_MAKE            $(MAKE) $(WMI_BUILD_TARGETS)"
 ifeq ($(USE_BREAKPAD),)

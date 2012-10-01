@@ -11,9 +11,8 @@
 # This will build the components of the C Samba library used by other ZenPacks.
 
 PYTHON=python
-SRC_DIR=$(PWD)/src
-WMI_DIR=$(SRC_DIR)/wmi
-ZENPACK_DIR=$(PWD)/ZenPacks/zenoss/PySamba
+WMI_SRCDIR=$(PWD)/src/wmi
+PYSAMBA_SRCDIR=$(PWD)/ZenPacks/zenoss/PySamba
 
 # Default target. This won't be used by any automated process, but would be
 # used if you simply ran "make" in this directory.
@@ -28,19 +27,19 @@ build:
 	# library be available on this machine in $ZENHOME/lib/. This
 	# is provided in core.
 	echo "Building WMI libraries..."; \
-	cd $(WMI_DIR) ; \
-	if ! make debug DESTDIR=$(ZENPACK_DIR); then \
+	cd $(WMI_SRCDIR) ; \
+	if ! make debug PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR); then \
 		exit 1 ;\
 	fi ;\
-	if ! make build DESTDIR=$(ZENPACK_DIR); then \
+	if ! make build PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR); then \
 		exit 1 ;\
 	fi ;\
-	if ! make install DESTDIR=$(ZENPACK_DIR); then \
+	if ! make install PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR); then \
 		exit 1 ;\
 	fi
 
 clean:
 	-rm -rf build dist *.egg-info 2>/dev/null
 	find . -name '*.pyc' -delete
-	cd $(WMI_DIR) ; \
-	make clean DESTDIR=$(ZENPACK_DIR)
+	cd $(WMI_SRCDIR) ; \
+	make clean PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR)
