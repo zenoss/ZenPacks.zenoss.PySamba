@@ -12,7 +12,7 @@
 
 PYTHON=python
 WMI_SRCDIR=$(PWD)/src/wmi
-PYSAMBA_SRCDIR=$(PWD)/ZenPacks/zenoss/PySamba
+PYSAMBA_prefix=$(PWD)/ZenPacks/zenoss/PySamba
 
 # Default target. This won't be used by any automated process, but would be
 # used if you simply ran "make" in this directory.
@@ -24,10 +24,10 @@ default: build
 
 check_prereqs:
 	cd $(WMI_SRCDIR) ; \
-	if ! make debug PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR); then \
+	if ! make debug PYSAMBA_prefix=$(PYSAMBA_prefix); then \
 		echo "Error: Failed during $@" ;\
 		echo "   cd $(WMI_SRCDIR)" ;\
-		echo "   make debug PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR)" ;\
+		echo "   make debug PYSAMBA_prefix=$(PYSAMBA_prefix)" ;\
 		exit 1 ;\
 	fi
 
@@ -40,17 +40,17 @@ check_prereqs:
 build: check_prereqs
 	echo "Building WMI libraries..."
 	@cd $(WMI_SRCDIR) ; \
-	if ! make build PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR); then \
+	if ! make build PYSAMBA_prefix=$(PYSAMBA_prefix); then \
 		echo "Error: Failed during $@" ;\
 		echo "   cd $(WMI_SRCDIR)" ;\
-		echo "   make build PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR)" ;\
+		echo "   make build PYSAMBA_prefix=$(PYSAMBA_prefix)" ;\
 		echo "   Unable to build WMI." ;\
 		exit 1 ;\
 	fi ;\
-	if ! make install PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR); then \
+	if ! make install PYSAMBA_prefix=$(PYSAMBA_prefix); then \
 		echo "Error: Failed during $@" ;\
 		echo "   cd $(WMI_SRCDIR)" ;\
-		echo "   make install PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR)" ;\
+		echo "   make install PYSAMBA_prefix=$(PYSAMBA_prefix)" ;\
 		echo "   Unable to install WMI." ;\
 		exit 1 ;\
 	fi
@@ -59,4 +59,4 @@ clean:
 	-rm -rf build dist *.egg-info 2>/dev/null
 	find . -name '*.pyc' -delete
 	cd $(WMI_SRCDIR) ; \
-	make clean PYSAMBA_SRCDIR=$(PYSAMBA_SRCDIR)
+	make clean PYSAMBA_prefix=$(PYSAMBA_prefix)

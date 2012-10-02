@@ -24,8 +24,10 @@ ZENPYTHON_VERSION := $(shell $(ZENPYTHON) --version 2>&1 | sed -e 's/[Pp]ython[ 
 ZENHOME_INC        = $(ZENHOME)/include/$(ZENPYTHON_VERSION)
 ZENHOME_LIB        = $(ZENHOME)/lib
 ZENHOME_BIN        = $(ZENHOME)/bin
+PYSAMBA_prefix_LIB = $(PYSAMBA_prefix)/lib
+PYSAMBA_prefix_BIN = $(PYSAMBA_prefix)/bin
 GET_VERSION        = "import version as v; print v.VERSION"
-WMI_VERSION       := $(shell cd $(PYSAMBA_SRCDIR)/lib/pysamba ; $(ZENPYTHON) -c $(GET_VERSION))
+WMI_VERSION       := $(shell cd $(PYSAMBA_prefix_LIB)/pysamba ; $(ZENPYTHON) -c $(GET_VERSION))
 WMI_CPPFLAGS      := -I$(DESTDIR)$(ZENHOME_INC)
 
 #-------------------------------------------------------------------------#
@@ -123,8 +125,8 @@ install-prereqs:
 	@echo
 	@echo "Checking prequisites for installing WMI"
 	$(call check,directory,$(DESTDIR)$(ZENHOME),"ZENHOME")
-	$(call check,directory,$(DESTDIR)$(ZENHOME_BIN),"ZENHOME_BIN")
-	$(call check,directory,$(DESTDIR)$(ZENHOME_LIB),"ZENHOME_LIB")
+	$(call check,directory,$(PYSAMBA_prefix_BIN),"PYSAMBA_prefix_BIN")
+	$(call check,directory,$(PYSAMBA_prefix_LIB),"PYSAMBA_prefix_LIB")
 	@touch $@
 
 LIBRPC_CONFIG_MK = $(SAMBA_SRCDIR)/librpc/config.mk
@@ -164,19 +166,19 @@ endif
 	$(MAKE) $(WMI_BUILD_TARGETS) ;\
 	touch $@
 
-pywmi-installed: install-prereqs $(DESTDIR)$(ZENHOME_LIB) $(DESTDIR)$(ZENHOME_BIN) $(SAMBA_SRCDIR)/bin/wmic $(SAMBA_SRCDIR)/bin/winexe $(PATHED_LIBASYNC_WMI_LIB)
-	cp $(SAMBA_SRCDIR)/bin/wmic   $(DESTDIR)$(ZENHOME_BIN)
-	cp $(SAMBA_SRCDIR)/bin/winexe $(DESTDIR)$(ZENHOME_BIN)
+pywmi-installed: install-prereqs $(PYSAMBA_prefix_LIB) $(PYSAMBA_prefix_BIN) $(SAMBA_SRCDIR)/bin/wmic $(SAMBA_SRCDIR)/bin/winexe $(PATHED_LIBASYNC_WMI_LIB)
+	cp $(SAMBA_SRCDIR)/bin/wmic   $(PYSAMBA_prefix_BIN)
+	cp $(SAMBA_SRCDIR)/bin/winexe $(PYSAMBA_prefix_BIN)
 ifeq ($(shell uname), Darwin)
-	cp $(PATHED_LIBASYNC_WMI_LIB) $(DESTDIR)$(ZENHOME_LIB)/$(LIBASYNC_WMI_LIB_BASENAME).$(LIBASYNC_WMI_LIB_VERSION_nnn).dylib
-	(cd $(DESTDIR)$(ZENHOME_LIB) && ln -sf $(LIBASYNC_WMI_LIB_BASENAME).$(LIBASYNC_WMI_LIB_VERSION_nnn).dylib $(LIBASYNC_WMI_LIB_BASENAME).dylib)
+	cp $(PATHED_LIBASYNC_WMI_LIB) $(PYSAMBA_prefix_LIB)/$(LIBASYNC_WMI_LIB_BASENAME).$(LIBASYNC_WMI_LIB_VERSION_nnn).dylib
+	(cd $(PYSAMBA_prefix_LIB) && ln -sf $(LIBASYNC_WMI_LIB_BASENAME).$(LIBASYNC_WMI_LIB_VERSION_nnn).dylib $(LIBASYNC_WMI_LIB_BASENAME).dylib)
 else
-	-(cd $(DESTDIR)$(ZENHOME_LIB) && rm -f $(LIBASYNC_WMI_LIB_BASENAME)*)
-	cp $(PATHED_LIBASYNC_WMI_LIB) $(DESTDIR)$(ZENHOME_LIB)
-	(cd $(DESTDIR)$(ZENHOME_LIB) && ln -sf $(LIBASYNC_WMI_LIB) $(LIBASYNC_WMI_LIB_SO_N))
+	-(cd $(PYSAMBA_prefix_LIB) && rm -f $(LIBASYNC_WMI_LIB_BASENAME)*)
+	cp $(PATHED_LIBASYNC_WMI_LIB) $(PYSAMBA_prefix_LIB)
+	(cd $(PYSAMBA_prefix_LIB) && ln -sf $(LIBASYNC_WMI_LIB) $(LIBASYNC_WMI_LIB_SO_N))
 endif
 
-$(DESTDIR)$(ZENHOME_BIN) $(DESTDIR)$(ZENHOME_LIB):
+$(PYSAMBA_prefix_LIB) $(PYSAMBA_prefix_BIN):
 	mkdir -p $@
 
 clean: $(LIBRPC_CONFIG_MK)
@@ -189,18 +191,20 @@ clean: $(LIBRPC_CONFIG_MK)
 	rm -f $(SAMBA_SRCDIR)/bin/wmic
 	rm -f $(SAMBA_SRCDIR)/bin/winexe 
 	rm -f $(SAMBA_SRCDIR)/heimdal/lib/des/hcrypto
-	rm -f $(DESTDIR)$(ZENHOME_BIN)/wmic
-	rm -f $(DESTDIR)$(ZENHOME_BIN)/winexe
+	rm -f $(PYSAMBA_prefix_BIN)/wmic
+	rm -f $(PYSAMBA_prefix_BIN)/winexe
 	rm -f build-prereqs
 	rm -f install-prereqs
 	rm -f $(LIBRPC_CONFIG_MK)
-	rm -f $(DESTDIR)$(ZENHOME_LIB)/$(LIBASYNC_WMI_LIB_BASENAME)*
+	rm -f $(PYSAMBA_prefix_LIB)/$(LIBASYNC_WMI_LIB_BASENAME)*
 	@-[ -L $(breakpad_LIB_SYMLINK) ] && rm -f $(breakpad_LIB_SYMLINK)
 
 debug:	
 	@echo "WMI_VERSION       = $(WMI_VERSION)"
 	@echo "SAMBA_SRCDIR      = $(SAMBA_SRCDIR)"
-	@echo "PYSAMBA_SRCDIR    = $(PYSAMBA_SRCDIR)"
+	@echo "PYSAMBA_prefix    = $(PYSAMBA_prefix)"
+	@echo "PYSAMBA_prefix_BIN= $(PYSAMBA_prefix_BIN)"
+	@echo "PYSAMBA_prefix_LIB= $(PYSAMBA_prefix_LIB)"
 	@echo "DESTDIR           = $(DESTDIR)"
 	@echo "ZENHOME_BIN       = $(ZENHOME_BIN)"
 	@echo "ZENHOME_LIB       = $(ZENHOME_LIB)"
