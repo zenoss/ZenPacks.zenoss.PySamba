@@ -123,8 +123,21 @@ continue_rpc = continue_rpc_callback(continue_rpc)
 
 class Rpc(object):
 
-    def __init__(self):
+    def __init__(self, ntlmv2auth=False):
         self.ctx = self.rpc_pipe = None
+
+        # ---- it's annoying that this is duplicated in twisted/reactor.py
+        def setNTLMv2Authentication(enabled = False):
+            """
+            Enables or disables the NTLMv2 authentication feature.
+            @param enabled: True if NTLMv2 is supported
+            @type enabled: boolean
+            """
+            flag = "no"
+            if enabled:
+                flag = "yes"
+            library.lp_do_parameter(-1, "client ntlmv2 auth", flag)
+        setNTLMv2Authentication(ntlmv2auth)
 
     def __del__(self):
         self.close()
