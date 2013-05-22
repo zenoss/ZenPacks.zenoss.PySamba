@@ -166,7 +166,7 @@ endif
 	$(MAKE) $(WMI_BUILD_TARGETS) ;\
 	touch $@
 
-pywmi-installed: install-prereqs $(PYSAMBA_prefix_LIB) $(PYSAMBA_prefix_BIN) $(SAMBA_SRCDIR)/bin/wmic $(SAMBA_SRCDIR)/bin/winexe $(PATHED_LIBASYNC_WMI_LIB)
+pywmi-installed: $(PYSAMBA_prefix_LIB) $(PYSAMBA_prefix_BIN) install-prereqs $(SAMBA_SRCDIR)/bin/wmic $(SAMBA_SRCDIR)/bin/winexe $(PATHED_LIBASYNC_WMI_LIB)
 	cp $(SAMBA_SRCDIR)/bin/wmic   $(PYSAMBA_prefix_BIN)
 	cp $(SAMBA_SRCDIR)/bin/winexe $(PYSAMBA_prefix_BIN)
 ifeq ($(shell uname), Darwin)
